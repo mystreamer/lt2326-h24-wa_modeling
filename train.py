@@ -9,8 +9,8 @@ import torchvision.transforms.functional as F
 from torch.optim import Adam
 import tqdm
 
-trainingdir = "./train"
-testingdir = "./test"
+trainingdir = "../train"
+testingdir = "../test"
 
 print("Running...")
 
@@ -19,6 +19,7 @@ class WikiArtDataset(Dataset):
         walking = os.walk(imgdir)
         filedict = {}
         indices = []
+        classes = set()
         print("Gathering files for {}".format(imgdir))
         for item in walking:
             sys.stdout.write('.')
@@ -27,10 +28,12 @@ class WikiArtDataset(Dataset):
             for art in artfiles:
                 filedict[art] = arttype
                 indices.append(art)
+                classes.add(arttype)
         print("...finished")
         self.filedict = filedict
         self.imgdir = imgdir
         self.indices = indices
+        self.classes = list(classes)
         
     def __len__(self):
         return len(self.filedict)
@@ -38,9 +41,10 @@ class WikiArtDataset(Dataset):
     def __getitem__(self, idx):
         imgname = self.indices[idx]
         label = self.filedict[imgname]
+        ilabel = self.classes.index(self.filedict[imgname])
         image = read_image(os.path.join(self.imgdir, label, imgname))
 
-        return image, label
+        return image, ilabel
 
 traindataset = WikiArtDataset(trainingdir)
 testingdataset = WikiArtDataset(testingdir)

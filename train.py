@@ -82,9 +82,8 @@ def train(epochs=3, modelfile=None):
     
     for epoch in range(epochs):
         print("Starting epoch {}".format(epoch))
-        for batch, x in enumerate(tqdm.tqdm(loader)):
-            print("item1 {} item2 {}".format(batch, x))
-            raise ValueError
+        for batch_id, batch in enumerate(tqdm.tqdm(loader)):
+            X, y = batch
             optimizer.zero_grad()
             output = model(batch)
             loss = criterion(output)

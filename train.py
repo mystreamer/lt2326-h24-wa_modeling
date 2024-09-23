@@ -42,7 +42,7 @@ class WikiArtDataset(Dataset):
         imgname = self.indices[idx]
         label = self.filedict[imgname]
         ilabel = self.classes.index(self.filedict[imgname])
-        image = read_image(os.path.join(self.imgdir, label, imgname))
+        image = read_image(os.path.join(self.imgdir, label, imgname)).float()
 
         return image, ilabel
 
@@ -89,8 +89,8 @@ def train(epochs=3, modelfile=None):
         for batch_id, batch in enumerate(tqdm.tqdm(loader)):
             X, y = batch
             optimizer.zero_grad()
-            output = model(batch)
-            loss = criterion(output)
+            output = model(X)
+            loss = criterion(output, y)
             loss.backward()
             optimizer.step()
 

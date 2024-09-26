@@ -11,11 +11,12 @@ import tqdm
 
 trainingdir = "../train"
 testingdir = "../test"
+device = "cuda:3"
 
 print("Running...")
 
 class WikiArtDataset(Dataset):
-    def __init__(self, imgdir):
+    def __init__(self, imgdir, device="cpu"):
         walking = os.walk(imgdir)
         filedict = {}
         indices = []
@@ -34,6 +35,7 @@ class WikiArtDataset(Dataset):
         self.imgdir = imgdir
         self.indices = indices
         self.classes = list(classes)
+        self.device = device
         
     def __len__(self):
         return len(self.filedict)
@@ -42,12 +44,12 @@ class WikiArtDataset(Dataset):
         imgname = self.indices[idx]
         label = self.filedict[imgname]
         ilabel = self.classes.index(self.filedict[imgname])
-        image = read_image(os.path.join(self.imgdir, label, imgname)).float()
+        image = read_image(os.path.join(self.imgdir, label, imgname)).float().to(device)
 
         return image, ilabel
 
-traindataset = WikiArtDataset(trainingdir)
-testingdataset = WikiArtDataset(testingdir)
+traindataset = WikiArtDataset(trainingdir, device)
+testingdataset = WikiArtDataset(testingdir, device)
 
 print(traindataset.imgdir)
 
@@ -77,17 +79,18 @@ class WikiArtModel(nn.Module):
         output = self.linear2(output)
         return self.softmax(output)
 
-def train(epochs=3, modelfile=None):
+def train(epochs=3, modelfile=None, device="cpu"):
     loader = DataLoader(traindataset, batch_size=32, shuffle=True)
 
-    model = WikiArtModel()
+    model = WikiArtModel().to(device)
     optimizer = Adam(model.parameters(), lr=0.01)
-    criterion = nn.NLLLoss()
+    criterion = nn.NLLLoss().to(device)
     
     for epoch in range(epochs):
         print("Starting epoch {}".format(epoch))
         for batch_id, batch in enumerate(tqdm.tqdm(loader)):
             X, y = batch
+            y = y.to(device)
             optimizer.zero_grad()
             output = model(X)
             loss = criterion(output, y)
@@ -99,4 +102,4 @@ def train(epochs=3, modelfile=None):
 
     return model
 
-model = train()
+model = train(device=device)

@@ -15,6 +15,17 @@ device = "cuda:3"
 
 print("Running...")
 
+class WikiArtImage:
+    def __init__(self, filename):
+        self.filename = filename:
+        self.image = None
+
+    def get(self):
+        if not self.image:
+            self.image = read_image(os.path.join(self.imgdir, label, imgname)).float()
+
+        return self.image
+
 class WikiArtDataset(Dataset):
     def __init__(self, imgdir, device="cpu"):
         walking = os.walk(imgdir)
@@ -27,7 +38,7 @@ class WikiArtDataset(Dataset):
             arttype = os.path.basename(item[0])
             artfiles = item[2]
             for art in artfiles:
-                filedict[art] = arttype
+                filedict[art] = (WikiArtImage(art), arttype)
                 indices.append(art)
                 classes.add(arttype)
         print("...finished")
@@ -42,9 +53,9 @@ class WikiArtDataset(Dataset):
 
     def __getitem__(self, idx):
         imgname = self.indices[idx]
-        label = self.filedict[imgname]
+        imgobj, label = self.filedict[imgname]
         ilabel = self.classes.index(self.filedict[imgname])
-        image = read_image(os.path.join(self.imgdir, label, imgname)).float().to(device)
+        image = imgobj.get().to(device)
 
         return image, ilabel
 

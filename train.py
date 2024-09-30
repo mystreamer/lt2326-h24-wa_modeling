@@ -9,10 +9,19 @@ import torchvision.transforms.functional as F
 from torch.optim import Adam
 import tqdm
 from wikiart import WikiArtDataset, WikiArtModel
+import json
+import argparse
 
-trainingdir = "../train"
-testingdir = "../test"
-device = "cuda:3"
+parser = argparse.ArgumentParser()
+parser.add_argument("-c", "--config", help="configuration file", default="config.json")
+
+args = parser.parse_args()
+
+config = json.load(open(args.config))
+
+trainingdir = config["trainingdir"]
+testingdir = config["testingdir"]
+device = config["device"]
 
 print("Running...")
 
@@ -53,4 +62,4 @@ def train(epochs=3, modelfile=None, device="cpu"):
 
     return model
 
-model = train(device=device)
+model = train(modelfile=config["modelfile"], device=device)

@@ -32,10 +32,7 @@ def test(modelfile=None, device="cpu"):
         X, y = batch
         y = y.to(device)
         output = model(X)
-        predictions.append(output)
+        predictions.append(torch.argmax(output))
         
 
-    if modelfile:
-        torch.save(model.state_dict(), modelfile)
-
-    return model
+test()

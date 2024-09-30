@@ -10,9 +10,19 @@ from torch.optim import Adam
 import tqdm
 from wikiart import WikiArtDataset, WikiArtModel
 import torcheval.metrics as metrics
+import json
+import argparse
 
-testingdir = "../test"
-device = "cuda:3"
+parser = argparse.ArgumentParser()
+parser.add_argument("-c", "--config", help="configuration file", default="config.json")
+
+args = parser.parse_args()
+
+config = json.load(open(args.config))
+
+testingdir = config["testingdir"]
+device = config["device"]
+
 
 print("Running...")
 
@@ -20,7 +30,7 @@ print("Running...")
 testingdataset = WikiArtDataset(testingdir, device)
 
 def test(modelfile=None, device="cpu"):
-    loader = DataLoader(traindataset, batch=1)
+    loader = DataLoader(testingdataset, batch_size=1)
 
     model = WikiArtModel()
     model.load_state_dict(torch.load(modelfile, weights_only=True))
@@ -28,11 +38,23 @@ def test(modelfile=None, device="cpu"):
     model.eval()
 
     predictions = []
+    truth = []
     for batch_id, batch in enumerate(tqdm.tqdm(loader)):
         X, y = batch
         y = y.to(device)
         output = model(X)
-        predictions.append(torch.argmax(output))
-        
+        predictions.append(torch.argmax(output).unsqueeze(dim=0))
+        truth.append(y)
 
-test()
+    #print("predictions {}".format(predictions))
+    #print("truth {}".format(truth))
+    predictions = torch.concat(predictions)
+    truth = torch.concat(truth)
+    metric = metrics.MulticlassAccuracy()
+    metric.update(predictions, truth)
+    print("Accuracy: {}".format(metric.compute()))
+    confusion = metrics.MulticlassConfusionMatrix(27)
+    confusion.update(predictions, truth)
+    print("Confusion Matrix\n{}".format(confusion.compute()))
+    
+test(modelfile=config["modelfile"], device=device)

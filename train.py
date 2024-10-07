@@ -39,8 +39,8 @@ print(the_image, the_image.size())
 # the_showable_image.show()
 
 
-def train(epochs=3, modelfile=None, device="cpu"):
-    loader = DataLoader(traindataset, batch_size=32, shuffle=True)
+def train(epochs=3, batch_size=32, modelfile=None, device="cpu"):
+    loader = DataLoader(traindataset, batch_size=batch_size, shuffle=True)
 
     model = WikiArtModel().to(device)
     optimizer = Adam(model.parameters(), lr=0.01)
@@ -48,6 +48,7 @@ def train(epochs=3, modelfile=None, device="cpu"):
     
     for epoch in range(epochs):
         print("Starting epoch {}".format(epoch))
+        accumulate_loss = 0
         for batch_id, batch in enumerate(tqdm.tqdm(loader)):
             X, y = batch
             y = y.to(device)
@@ -55,11 +56,14 @@ def train(epochs=3, modelfile=None, device="cpu"):
             output = model(X)
             loss = criterion(output, y)
             loss.backward()
+            accumulate_loss += loss
             optimizer.step()
+
+        print("In epoch {}, loss = {}".format(epoch, accumulate_loss))
 
     if modelfile:
         torch.save(model.state_dict(), modelfile)
 
     return model
 
-model = train(modelfile=config["modelfile"], device=device)
+model = train(config["epochs"], config["batch_size"], modelfile=config["modelfile"], device=device)

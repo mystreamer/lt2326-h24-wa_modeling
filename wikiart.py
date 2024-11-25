@@ -1,13 +1,9 @@
 import sys
 import os
-import torch
 import torch.nn as nn
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 from torchvision.io import read_image
-import matplotlib.pyplot as plt
-import torchvision.transforms.functional as F
-from torch.optim import Adam
-import tqdm
+# from torch.utils.data WeightedRandomSampler
 
 
 class WikiArtImage:
@@ -46,7 +42,7 @@ class WikiArtDataset(Dataset):
         self.indices = indices
         self.classes = list(classes)
         self.device = device
-        
+ 
     def __len__(self):
         return len(self.filedict)
 
@@ -55,8 +51,31 @@ class WikiArtDataset(Dataset):
         imgobj = self.filedict[imgname]
         ilabel = self.classes.index(imgobj.label)
         image = imgobj.get().to(self.device)
-
         return image, ilabel
+
+    def get_balancing_weights(self):
+        """ Returns a list of tuples in the form
+            (key, weight), where weight is the probability
+            for a random weighted sampler that make the
+            sampling probabilities balanced.
+        """
+        nclasses = len(self.classes)
+        nimages = len(self.indices)
+        count_per_class = {k: v for k, v in zip(self.classes, [0] * nclasses)}
+        print(count_per_class)
+        # make histogram
+        for key in self.indices:
+            count_per_class[self.filedict[key].label] += 1
+        weight_per_class = {k: v for k, v in zip(self.classes, [0.] * nclasses)}
+        print(count_per_class)
+        for key in self.classes:
+            weight_per_class[key] = float(nimages) / float(count_per_class[key])
+        print(weight_per_class)
+        weights = []
+        # return per-datapoint weightings
+        for _, idx in enumerate(self.indices):
+            weights.append(weight_per_class.get(self.filedict[idx].label, 0))
+        return weights
 
 class WikiArtModel(nn.Module):
     def __init__(self, num_classes=27):

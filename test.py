@@ -1,17 +1,10 @@
-import sys
-import os
-import torch
-import torch.nn as nn
-from torch.utils.data import Dataset, DataLoader
-from torchvision.io import read_image
-import matplotlib.pyplot as plt
-import torchvision.transforms.functional as F
-from torch.optim import Adam
 import tqdm
+import json
+import torch
+import argparse
+from torch.utils.data import Dataset, DataLoader
 from modules.wikiart import WikiArtDataset, WikiArtModel
 import torcheval.metrics as metrics
-import json
-import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-c", "--config", help="configuration file", default="config.json")
@@ -22,7 +15,6 @@ config = json.load(open(args.config))
 
 testingdir = config["testingdir"]
 device = config["device"]
-
 
 print("Running...")
 
@@ -46,8 +38,6 @@ def test(modelfile=None, device="cpu"):
         predictions.append(torch.argmax(output).unsqueeze(dim=0))
         truth.append(y)
 
-    #print("predictions {}".format(predictions))
-    #print("truth {}".format(truth))
     predictions = torch.concat(predictions)
     truth = torch.concat(truth)
     metric = metrics.MulticlassAccuracy()

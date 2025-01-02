@@ -27,10 +27,12 @@ class WikiArtDataset(Dataset):
         filedict = {}
         indices = []
         classes = set()
+        # print(list(walking))
         print("Gathering files for {}".format(imgdir))
         for item in walking:
             sys.stdout.write('.')
             arttype = os.path.basename(item[0])
+            # print(item[0])
             artfiles = item[2]
             for art in artfiles:
                 filedict[art] = WikiArtImage(imgdir, arttype, art)

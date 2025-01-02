@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import torchvision.transforms.functional as F
 from torch.optim import Adam
 import tqdm
-from wikiart import WikiArtDataset, WikiArtModel
+from modules.wikiart import WikiArtDataset, WikiArtModel
 import json
 import argparse
 

@@ -1,8 +1,0 @@
-{
-    "modelfile": "wikiart.pth",
-    "trainingdir": "../train",
-    "testingdir": "../test",
-    "device": "cuda:3",
-    "epochs": 20,
-    "batch_size": 32
-}

@@ -1,39 +1,43 @@
 import torch
-from torch import nn, Tensor
-from typing import Tuple
+from torch import nn
 from torch.optim import lr_scheduler
 from tqdm import tqdm
 import numpy as np
 
 # local imports
 from modules.autoencoder import AutoEncoder
-from modules.utils import detect_platform
+from modules.utils import detect_platform, CLIParser
 from modules.wikiart import WikiArtDataset
 
 print(__name__)
 
 if __name__ == "__main__":
-    # Learning Rate
-    LEARNING_RATE = 0.1
-    CUDA_NUM = 0
-    SAVE_DIR = "./models"
+    # get arguments
+    cp = CLIParser()
+    ap = cp.get_argument_parser()
+    args = ap.parse_args()
 
-    # load the dataset
-    device = detect_platform(CUDA_NUM)
-    batch_size=32
+    # print(args)
 
-    ##### LOAD DATASTET #####
-    # SET PATH
-    trainingdir = "/Users/dylan/Downloads/wikiart/train"
-    testingdir = "/Users/dylan/Downloads/wikiart/test"
-    # LOAD TRAIN DATASET
-    traindataset = WikiArtDataset(trainingdir, device)
-    # LOAD TEST DATASET
-    testdataset = WikiArtDataset(testingdir, device)
+    # Set params from config / CLI
+    learning_rate = getattr(args, "training_autoencoder.learning_rate")
+    n_epochs = getattr(args, "training_autoencoder.epochs")
+    traindir = args.train_folder
+    testdir = args.test_folder
+    autoencoder_name = args.autoencoder_model_name
+    device = detect_platform(args.cuda_num)
+    save_dir = args.model_save_dir
+    batch_size = args.batch_size
 
+    # Load datasets
+    traindataset = WikiArtDataset(traindir, device)
+    testdataset = WikiArtDataset(testdir, device)
+
+    # Init model & optimiser
     model = AutoEncoder().to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
-    # Activate training mode
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+
+    # Ensure model is ready to train (gradients active)
     model.train()
 
     # Use MSE as loss function
@@ -44,13 +48,13 @@ if __name__ == "__main__":
     scheduler = lr_scheduler.StepLR(optimizer, 
                                     step_size=100,
                                     gamma=0.1)
-
-    # from tqdm.notebook import tqdm
-    # import numpy as np
+    
+    # Perform dataset balancing
     weights = traindataset.get_balancing_weights()
     weights = torch.DoubleTensor(weights)                                       
     sampler = torch.utils.data.sampler.WeightedRandomSampler(weights, len(weights))                     
 
+    # Create the dataloaders
     train_loader_balanced = torch.utils.data.DataLoader(
         traindataset, 
         batch_size = batch_size,
@@ -64,7 +68,6 @@ if __name__ == "__main__":
     )
 
     ### TRAINING ###
-    n_epochs = 5
     eval_every = 10
     best_loss = np.infty
 
@@ -73,43 +76,35 @@ if __name__ == "__main__":
             losses = []
             # Iterate over data in batches
             for x_batch, y_batch in tqdm(train_loader_balanced, leave=False):
-                # PyTorch specific; We need to reset all gradients
                 optimizer.zero_grad()
                 
-                # 0. Transform input batch data from 28 X 28 to 784 features
-                #   Note that our encoder maps the data into just 10 features!
                 x_batch = x_batch.to(device)
-                # x_batch = x_batch.view(x_batch.shape[0], -1)
-                # x_batch = x_batch[0]
-                # print(x_batch.shape)
                 
-                # 1. Apply AutoEncoder model (forward pass).
-                #    We use the output of the decoder for training.
+                # forward pass
                 output = model(x_batch)[1]
                 
-                # 2. Calculate the reconstruction loss
+                # calc error (reconstruction loss)
                 loss = loss_(output, x_batch)
                 losses.append(loss.item())
                 
-                # 3. Backpropagate the loss
+                # backprop
                 loss.backward()
                 
-                # 4. Update the weights
+                # update rule
                 optimizer.step()
             
-            # Mean loss of the batches in this epoch
             mean_loss = np.round(np.mean(losses), 5)
             
-            # Print current loss after 'eval_every' epochs
+            # evaluate loss
             if (epoch+1) % eval_every == 0:
                 print(f"Loss at epoch [{epoch+1} / {n_epochs}]: {mean_loss}")
 
-            # Update learning rate as training continues
+            # push the scheduler
             scheduler.step()
 
-            # Progress bar
+            # update progress bar
             pbar.write('processed: %d' %epoch)
             pbar.update(1) 
 
-    # Save the model
-    torch.save(model.state_dict(), f"{SAVE_DIR}/autoencoder.pth")
+    # save model
+    torch.save(model.state_dict(), f"{save_dir}/{ autoencoder_name }")

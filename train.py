@@ -1,16 +1,13 @@
-import sys
-import os
-import torch
-import torch.nn as nn
-from torch.utils.data import Dataset, DataLoader
-from torchvision.io import read_image
-import matplotlib.pyplot as plt
-import torchvision.transforms.functional as F
-from torch.optim import Adam
 import tqdm
-from modules.wikiart import WikiArtDataset, WikiArtModel
 import json
 import argparse
+import torch
+import torch.nn as nn
+from torch.utils.data import DataLoader
+from torch.optim import Adam
+
+# local imports
+from modules.wikiart import WikiArtDataset, WikiArtModel
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-c", "--config", help="configuration file", default="config.json")

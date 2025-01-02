@@ -50,5 +50,5 @@ if __name__ == "__main__":
     # Testing the CLIParser
     cp = CLIParser()
     argument_parser = cp.get_argument_parser()
-    my_args = argument_parser.parse_args()
+    my_args = argument_parser.parse_known_args()
     print("Overriden Args: ", my_args)

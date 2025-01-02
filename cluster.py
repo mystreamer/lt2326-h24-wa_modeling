@@ -9,13 +9,18 @@ from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 
 # local imports
 from modules.autoencoder import AutoEncoder
-from modules.utils import detect_platform
+from modules.utils import detect_platform, CLIParser
 from modules.wikiart import WikiArtDataset
 
 def extract_embeddings(model, data_loader, device):
+    """
+    This function gets the "dense" representations from the latent space
+    created by the autoencoder.
+    """
     model.to(device)
     model.eval()
     embeddings = []
@@ -23,7 +28,7 @@ def extract_embeddings(model, data_loader, device):
         for data in data_loader:
             inputs = data[0].to(device)
             encoded = model.encoder(inputs)
-            # print("Detaching")
+            # don't forget to detach
             encoded = encoded.cpu().detach()
             embeddings.append(encoded)
     return torch.vstack(embeddings)
@@ -70,19 +75,27 @@ def plot_clusters_2d(data_points, labels, image_path, title="2D Data Clustering"
     plt.savefig(image_path)
 
 if __name__ == "__main__":
-    # Load Autoencoder Model
-    model = AutoEncoder()
-    SAVE_DIR = "./models"
-    CUDA_NUM = 0
-    model.load_state_dict(torch.load(f"./{SAVE_DIR}/autoencoder.pth", weights_only=True))
-    model.eval()
+    # get args
+    cp = CLIParser()
+    ap = cp.get_argument_parser()
+    args = ap.parse_args()
 
-    batch_size=32
-    device = detect_platform(CUDA_NUM)
+    print(args)
 
-    # LOAD TEST DATASET
-    testingdir = "/Users/dylan/Downloads/wikiart/test"
+    # Set from config / cli
+    save_dir = args.model_save_dir
+    batch_size = args.batch_size
+    autoencoder_name = args.autoencoder_model_name
+    device = detect_platform(args.cuda_num)
+    testingdir = args.test_folder
     testdataset = WikiArtDataset(testingdir, device)
+    vizdir = args.visualisation_dir
+    os.makedirs(vizdir, exist_ok=True)
+
+    # Init model class, load model, put into eval mode
+    model = AutoEncoder()
+    model.load_state_dict(torch.load(f"./{ save_dir }/{ autoencoder_name }", weights_only=True))
+    model.eval()
 
     # load dataset
     test_loader = torch.utils.data.DataLoader(
@@ -105,4 +118,7 @@ if __name__ == "__main__":
     pca = PCA(n_components=2)
     embeddings_red = pca.fit_transform(embeddings)
 
-    plot_clusters_2d(embeddings_red, labels, image_path=f"./visualisations/clusters.png")
+    # Plot and save as image
+    plot_clusters_2d(embeddings_red, labels, image_path=f"{ vizdir }/clusters.png")
+    
+    print(f"Cluster visualisation saved to { vizdir }/clusters.png")

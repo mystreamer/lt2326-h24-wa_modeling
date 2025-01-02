@@ -35,7 +35,7 @@ To generate the clusters I use Principal Component Analysis (PCA) for dimensiona
 
 Running the command:
 ```
-python clustering.py [--clustering.k]
+python cluster.py [--clustering.k]
 ```
 with optional k will yield generate an image in the `visualisations` folder (if the `visualisation_dir` option is not overriden). The filename is `clusters.png`.
 

@@ -32,14 +32,19 @@ class CLIParser():
 
         # parser.add_argument("config", default="config.json")
         # print("abcabc", parser.parse_args().config)
-        if len(sys.argv) > 1 and sys.argv[1].endswith(".json"):
-            self.get_json_defaults(sys.argv[1])
-            arg_def = sys.argv[1]
-        else:
-            self.get_json_defaults("config.json")
-            arg_def = "config.json"
+        # if len(sys.argv) > 1 and sys.argv[1].endswith(".json"):
+        #     self.get_json_defaults(sys.argv[1])
+        #     arg_def = sys.argv[1]
+        # else:
+        #     self.get_json_defaults("config.json")
+        #     arg_def = "config.json"
 
-        parser.add_argument("--config", default=arg_def)
+        parser.add_argument("--config", default="config.json")
+
+        k_args = parser.parse_known_args()
+
+        self.get_json_defaults(k_args[0].config)
+
         for elem in self.arqs_dict:
             if type(self.arqs_dict[elem]) == dict:
                 for elem2 in self.arqs_dict[elem]:

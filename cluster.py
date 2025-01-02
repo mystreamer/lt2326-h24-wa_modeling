@@ -90,7 +90,7 @@ if __name__ == "__main__":
     testingdir = args.test_folder
     testdataset = WikiArtDataset(testingdir, device)
     vizdir = args.visualisation_dir
-    cluster_k = args.clustering.k
+    cluster_k = getattr(args, "clustering.k")
     os.makedirs(vizdir, exist_ok=True)
 
     # Init model class, load model, put into eval mode
@@ -112,7 +112,7 @@ if __name__ == "__main__":
     labels = get_label_numbers(test_loader)
 
     # We know K apriori in the supervised setting
-    kmeans = KMeans(n_clusters=len(set(labels)) if cluster_k == "default" else cluster_k, random_state=42).fit(embeddings.numpy())
+    kmeans = KMeans(n_clusters=len(set(labels)) if str(cluster_k) == "default" else int(cluster_k), random_state=42).fit(embeddings.numpy())
     clusters = kmeans.labels_
 
     # Reduce dimensionality

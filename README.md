@@ -6,7 +6,7 @@ In each section of this document I describe my observations along with the comma
 
 #### Configuration / CLI
 
-The default configuration parameters can be found in the `config.json`. Each of the setting parameters can be adjusted by overriding them and passing them as command-line arguments to the script that one wants to run. By default the system will look for a file of the name `config.json` in the root directory. If this behaviour should be changed, all of the commands that follow can be immediately followed with the path to a different configurations file, e.g. `python train_autoencoder.py config_custom.json [--options...]`
+The default configuration parameters can be found in the `config.json`. Each of the setting parameters can be adjusted by overriding them and passing them as command-line arguments to the script that one wants to run. By default the system will look for a file of the name `config.json` in the root directory. If this behaviour should be changed, all of the commands that follow can be immediately followed with the path to a different configurations file, e.g. `python train_autoencoder.py --config config_custom.json [--options...]`
 
 ## Part 1 - Fix class imbalance
 

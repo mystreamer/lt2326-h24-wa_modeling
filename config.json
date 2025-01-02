@@ -1,0 +1,22 @@
+{
+    "cuda_num": 0,
+    "batch_size": 32,
+    "train_folder" : "/scratch/lt2326-2926-h24/wikiart/train",
+    "test_folder": "/scratch/lt2326-2926-h24/wikiart/test",
+    "autoencoder_model_name": "autoencoder.pth",
+    "discriminator_model_name": "discriminator.pth",
+    "model_save_dir": "./models",
+    "image_dir": "./images",
+    "visualisation_dir": "./visualisations",
+    "training_autoencoder": {
+        "learning_rate": 0.001,
+        "epochs": 5
+    },
+    "training_discriminator": {
+        "learning_rate": 0.001,
+        "epochs": 5
+    },
+    "clustering": {
+        "k": "default"
+    }
+}

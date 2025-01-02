@@ -32,7 +32,7 @@ class CLIParser():
 
         # parser.add_argument("config", default="config.json")
         # print("abcabc", parser.parse_args().config)
-        if len(sys.argv) > 0 and sys.argv[1].endswith(".json"):
+        if len(sys.argv) > 1 and sys.argv[1].endswith(".json"):
             self.get_json_defaults(sys.argv[1])
         else:
             self.get_json_defaults("config.json")
